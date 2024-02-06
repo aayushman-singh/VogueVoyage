@@ -1,4 +1,3 @@
-import 'package:clothing/screens/camera_screen.dart';
 import 'package:clothing/utils/adjustments.dart';
 import 'package:flutter/material.dart';
 import 'screens/user_input.dart';

@@ -1,309 +1,300 @@
+import 'dart:convert';
 import 'dart:io';
-import 'dart:ui' as ui;
-import 'package:clothing/screens/carousels.dart';
+import 'package:clothing/features/text.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_vision/flutter_vision.dart';
 import 'package:camera/camera.dart';
-import 'package:clothing/features/model_service.dart';
-import 'package:flutter/services.dart';
-import 'package:palette_generator/palette_generator.dart';
-import 'package:clothing/utils/image_data.dart';
 import 'package:provider/provider.dart';
-import 'package:clothing/utils/adjustments.dart';
+import 'package:clothing/screens/carousels.dart';
+import 'package:clothing/utils/adjustments.dart'; // Ensure you have a HomeModel class to manage your app state
+import 'package:clothing/utils/image_data.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
-class CameraScreen extends StatefulWidget {
-  const CameraScreen({super.key});
-
+class PermissionExample extends StatefulWidget {
   @override
-  _CameraScreenState createState() => _CameraScreenState();
+  _PermissionExampleState createState() => _PermissionExampleState();
 }
 
-class _CameraScreenState extends State<CameraScreen> {
-  CameraController? _controller;
-  bool _showRetryButton = false;
+class _PermissionExampleState extends State<PermissionExample> {
+  // Define the permission status
+  PermissionStatus _status = PermissionStatus.denied;
 
   @override
   void initState() {
     super.initState();
-    _initCameraController();
-    // Obtain a list of the available cameras on the device.
-    availableCameras().then((cameras) {
-      if (cameras.isNotEmpty) {
-        _controller = CameraController(cameras[0], ResolutionPreset.medium);
+    // Check and request the desired permission when the widget is initialized
+    _checkPermission();
+  }
 
-        // Set _showRetryButton to true once the controller is initialized
-        setState(() {
-          _showRetryButton = true;
-        });
-      }
+  // Function to check and request the permission
+  Future<void> _checkPermission() async {
+    // Check if the permission is granted
+    final status = await Permission.camera.status;
+    setState(() {
+      _status = status;
     });
-  }
 
-  Future<void> _initCameraController() async {
-    try {
-      final cameras = await availableCameras();
-      if (cameras.isNotEmpty) {
-        final tempController =
-            CameraController(cameras[0], ResolutionPreset.medium);
-        await tempController.initialize();
-        if (mounted) {
-          setState(() {
-            _controller = tempController;
-            _showRetryButton = true;
-          });
-        }
-      } else {
-        print('No cameras found on this device.');
-      }
-    } catch (e) {
-      print('Error initializing camera: $e');
-    }
-  }
-
-  Color getPixelColor(ui.Image img, int x, int y) {
-    // Get the byte data for the image
-    final ByteData byteData = img.toByteData() as ByteData;
-    if (byteData != null) {
-      // Calculate the offset for the pixel at (x, y)
-      final int offset = (y * img.width + x) * 4;
-
-      // Extract the color components (alpha, red, green, blue)
-      int alpha = byteData.getUint8(offset);
-      int red = byteData.getUint8(offset + 1);
-      int green = byteData.getUint8(offset + 2);
-      int blue = byteData.getUint8(offset + 3);
-
-      return Color.fromARGB(alpha, red, green, blue);
-    } else {
-      throw Exception("Failed to get ByteData from Image.");
-    }
-  }
-
-  Future<Color> extractDominantColor(String path) async {
-    final data = await rootBundle.load(path);
-    final bytes = Uint8List.view(data.buffer);
-
-    final image = await decodeImageFromList(bytes);
-    final paletteGenerator = await PaletteGenerator.fromImage(image!);
-
-    // Retrieve the most dominant color
-    final Color dominantColor = paletteGenerator.dominantColor!.color;
-
-    return dominantColor;
-  }
-
-  Color computeAvgColor(Image img, Rect region) {
-    int rTotal = 0;
-    int gTotal = 0;
-    int bTotal = 0;
-    int count = 0;
-    ui.Image uiImage = img as ui.Image;
-
-    for (int y = region.top.toInt(); y < region.bottom.toInt(); y++) {
-      for (int x = region.left.toInt(); x < region.right.toInt(); x++) {
-        final color = getPixelColor(uiImage, x, y);
-
-        rTotal += color.red;
-        gTotal += color.green;
-        bTotal += color.blue;
-        count++;
-      }
-    }
-
-    final avgR = (rTotal / count).round();
-    final avgG = (gTotal / count).round();
-    final avgB = (bTotal / count).round();
-
-    return Color.fromRGBO(avgR, avgG, avgB, 1);
-  }
-
-  Future _showOccasionMenu(BuildContext context) async {
-    final String? result = await showDialog<String>(
-      context: context,
-      builder: (BuildContext context) {
-        return SimpleDialog(
-          title: const Text('Select Occasion'),
-          children: [
-            SimpleDialogOption(
-              onPressed: () {
-                Navigator.pop(context, 'casual');
-              },
-              child: Text('Casual'),
-            ),
-            SimpleDialogOption(
-              onPressed: () {
-                Navigator.pop(context, 'formal');
-              },
-              child: Text('Formal'),
-            ),
-            SimpleDialogOption(
-              onPressed: () {
-                Navigator.pop(context, 'other');
-              },
-              child: Text('Other'),
-            ),
-          ],
-        );
-      },
-    );
-
-    // Set the selected occasion in HomeModel
-    if (result != null) {
-      final homeModel = Provider.of<HomeModel>(context, listen: false);
-      homeModel.setOccasion(result);
-    }
-  }
-
-  Future _showApparelMenu(BuildContext context) async {
-    // You can populate this list based on your needs
-    final List<String> options = [
-      'Tshirts',
-      'Tops',
-      'Shirts',
-      'Jeans',
-      'Pants',
-      'Shoes',
-      'Boots',
-      'Skirts',
-      'Dresses',
-      'Jackets',
-      'Blazers',
-      'Heels',
-      'Hats',
-      'Shorts'
-    ];
-
-    final String? result = await showDialog<String>(
-      context: context,
-      builder: (BuildContext context) {
-        return SimpleDialog(
-          title: const Text('Select Apparel Type'),
-          children: options
-              .map((option) => SimpleDialogOption(
-                    onPressed: () {
-                      Navigator.pop(context, option);
-                    },
-                    child: Text(option),
-                  ))
-              .toList(),
-        );
-      },
-    );
-
-    // Set the selected apparel input in HomeModel
-    if (result != null) {
-      final homeModel = Provider.of<HomeModel>(context, listen: false);
-      final boxToApparelTypeMapProvider =
-          Provider.of<BoxToApparelTypeMap>(context, listen: false);
-      homeModel.setApparelInput(result);
-      boxToApparelTypeMapProvider.updateApparelTypeMap(result);
-      print(boxToApparelTypeMapProvider.boxToApparelTypeMap);
-      print(result);
-      print("Current ApparelInput: ${homeModel.apparelInput}");
-    }
-  }
-
-  Future _showColorMenu(BuildContext context) async {
-    // You can populate this list based on your needs
-    final List<String> options = [
-      'Red',
-      'Green',
-      'Blue',
-      'Yellow',
-      'Orange',
-      'Purple',
-      'Black',
-      'White',
-      'Gray',
-      'Pink',
-      'Cyan',
-      'Magenta',
-      'Lime',
-      'Maroon',
-      'Navy',
-      'Olive',
-      'Turquoise',
-      'Coral',
-    ];
-
-    final String? result = await showDialog<String>(
-      context: context,
-      builder: (BuildContext context) {
-        return SimpleDialog(
-          title: const Text('Select Color'),
-          children: options
-              .map((option) => SimpleDialogOption(
-                    onPressed: () {
-                      Navigator.pop(context, option);
-                    },
-                    child: Text(option),
-                  ))
-              .toList(),
-        );
-      },
-    );
-
-    // Set the selected apparel input in HomeModel
-    if (result != null) {
-      final homeModel = Provider.of<HomeModel>(context, listen: false);
-      print(result);
-      homeModel.setColor(result);
-      print("Current ApparelColor: ${homeModel.apparelColor}");
+    // If the permission is not granted, request it
+    if (!_status.isGranted) {
+      final result = await Permission.camera.request();
+      setState(() {
+        _status = result;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_controller == null || !_controller!.value.isInitialized) {
-      // CameraController is not ready yet, show a loading indicator
-      return Center(child: CircularProgressIndicator());
-    }
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Permission Example'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text('Camera Permission Status: $_status'),
+            SizedBox(height: 20.0),
+            ElevatedButton(
+              onPressed: _checkPermission,
+              child: Text('Check Permission'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
+Future _showOccasionMenu(BuildContext context) async {
+  final String? result = await showDialog<String>(
+    context: context,
+    builder: (BuildContext context) {
+      return SimpleDialog(
+        title: const Text('Select Occasion'),
+        children: [
+          SimpleDialogOption(
+            onPressed: () {
+              Navigator.pop(context, 'casual');
+            },
+            child: Text('Casual'),
+          ),
+          SimpleDialogOption(
+            onPressed: () {
+              Navigator.pop(context, 'formal');
+            },
+            child: Text('Formal'),
+          ),
+          SimpleDialogOption(
+            onPressed: () {
+              Navigator.pop(context, 'other');
+            },
+            child: Text('Other'),
+          ),
+        ],
+      );
+    },
+  );
+
+  // Set the selected occasion in HomeModel
+  if (result != null) {
+    final homeModel = Provider.of<HomeModel>(context, listen: false);
+    homeModel.setOccasion(result);
+  }
+}
+
+Future _showApparelMenu(BuildContext context) async {
+  // You can populate this list based on your needs
+  final List<String> options = [
+    'Tshirts',
+    'Tops',
+    'Shirts',
+    'Jeans',
+    'Pants',
+    'Shoes',
+    'Boots',
+    'Skirts',
+    'Dresses',
+    'Jackets',
+    'Blazers',
+    'Heels',
+    'Hats',
+    'Shorts'
+  ];
+
+  final String? result = await showDialog<String>(
+    context: context,
+    builder: (BuildContext context) {
+      return SimpleDialog(
+        title: const Text('Select Apparel Type'),
+        children: options
+            .map((option) => SimpleDialogOption(
+                  onPressed: () {
+                    Navigator.pop(context, option);
+                  },
+                  child: Text(option),
+                ))
+            .toList(),
+      );
+    },
+  );
+
+  // Set the selected apparel input in HomeModel
+  if (result != null) {
+    final homeModel = Provider.of<HomeModel>(context, listen: false);
+    final boxToApparelTypeMapProvider =
+        Provider.of<BoxToApparelTypeMap>(context, listen: false);
+    homeModel.setApparelInput(result);
+    boxToApparelTypeMapProvider.updateApparelTypeMap(result);
+    print(boxToApparelTypeMapProvider.boxToApparelTypeMap);
+    print(result);
+    print("Current ApparelInput: ${homeModel.apparelInput}");
+  }
+}
+
+Future _showColorMenu(BuildContext context) async {
+  // You can populate this list based on your needs
+  final List<String> options = [
+    'Red',
+    'Green',
+    'Blue',
+    'Yellow',
+    'Orange',
+    'Purple',
+    'Black',
+    'White',
+    'Gray',
+    'Pink',
+    'Cyan',
+    'Magenta',
+    'Lime',
+    'Maroon',
+    'Navy',
+    'Olive',
+    'Turquoise',
+    'Coral',
+  ];
+
+  final String? result = await showDialog<String>(
+    context: context,
+    builder: (BuildContext context) {
+      return SimpleDialog(
+        title: const Text('Select Color'),
+        children: options
+            .map((option) => SimpleDialogOption(
+                  onPressed: () {
+                    Navigator.pop(context, option);
+                  },
+                  child: Text(option),
+                ))
+            .toList(),
+      );
+    },
+  );
+
+  // Set the selected apparel input in HomeModel
+  if (result != null) {
+    final homeModel = Provider.of<HomeModel>(context, listen: false);
+    print(result);
+    homeModel.setColor(result);
+    print("Current ApparelColor: ${homeModel.apparelColor}");
+  }
+}
+
+class YoloImageV8 extends StatefulWidget {
+  final FlutterVision vision;
+  const YoloImageV8({Key? key, required this.vision}) : super(key: key);
+
+  @override
+  State<YoloImageV8> createState() => _YoloImageV8State();
+}
+
+class _YoloImageV8State extends State<YoloImageV8> {
+  void updateModel(String label) {
+    print('successfully upadted');
+    final homeModel = Provider.of<HomeModel>(context, listen: false);
+    homeModel.setApparelInput(label);
+    print(homeModel);
+    final boxToApparelTypeMapProvider =
+        Provider.of<BoxToApparelTypeMap>(context, listen: false);
+    boxToApparelTypeMapProvider.updateApparelTypeMap(label);
+    print(boxToApparelTypeMapProvider.boxToApparelTypeMap);
+  }
+
+  late List<Map<String, dynamic>> yoloResults;
+  File? imageFile;
+  int imageHeight = 1;
+  int imageWidth = 1;
+  bool isLoaded = false;
+  String imagePath = 'C:/Users/Aayushman/Downloads/tshirt.jpg';
+  @override
+  void initState() {
+    setState(() {
+      yoloResults = [];
+      isLoaded = true;
+      imagePath = 'C:/Users/Aayushman/Downloads/tshirt.jpg';
+    });
+  }
+
+  @override
+  void dispose() async {
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Size size = MediaQuery.of(context).size;
+    if (!isLoaded) {
+      return const Scaffold(
+        body: Center(
+          child: Text("Model not loaded, waiting for it"),
+        ),
+      );
+    }
     return Stack(
+      fit: StackFit.expand,
       children: [
-        CameraPreview(_controller!),
-        if (_showRetryButton)
-          Positioned(
-            bottom: 20,
-            left: 0,
-            right: 0,
+        imageFile != null ? Image.file(imageFile!) : const SizedBox(),
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: SafeArea(
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: () => {
-                    _generateOutfit(),
-                   
-                  },
-                  child: Text('Generate'),
+                  onPressed: () => _showOccasionMenu(context),
+                  child: const Text('Occasion'),
+                ),
+                ElevatedButton(
+                  onPressed: () => _showApparelMenu(context),
+                  child: const Text('Apparel'),
+                ),
+                ElevatedButton(
+                  onPressed: () => _showColorMenu(context),
+                  child: const Text('Color'),
                 ),
               ],
             ),
           ),
-        Positioned(
-          top: 20,
-          left: 0,
-          right: 0,
+        ),
+        Align(
+          alignment: Alignment.bottomCenter,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ElevatedButton(
-                onPressed: () async {
-                  await _showOccasionMenu(context);
-                },
-                child: Text('Select Occasion'),
+              TextButton(
+                onPressed: pickImage,
+                child: const Text("Pick an image"),
               ),
               ElevatedButton(
-                onPressed: () async {
-                  await _showApparelMenu(context);
-                },
-                child: Text('Select Apparel Type'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  await _showColorMenu(context);
-                },
-                child: Text('Select Color'),
-              ),
+                onPressed: yoloOnImage,
+                child: const Text("Detect"),
+              )
             ],
           ),
         ),
@@ -311,57 +302,66 @@ class _CameraScreenState extends State<CameraScreen> {
     );
   }
 
-//Generate color and label
+  //Future<void> loadYoloModel() async {
+  // await widget.vision.loadYoloModel(
+  //     labels: 'assets/labels.txt',
+  //     modelPath: 'assets/yolov8n.tflite',
+  //   modelVersion: "yolov8",
+  //    quantization: false,
+  //     numThreads: 2,
+  //   useGpu: true);
+  //setState(() {
+  //   isLoaded = true;
+  // });
+  //}
 
-  Future<void> _generateOutfit() async {
-    try {
-      final image = await _controller?.takePicture();
-      await ModelService.loadModel();
+  Future<void> pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    // Capture a photo
+    final XFile? photo = await picker.pickImage(source: ImageSource.gallery);
+    if (photo != null) {
+      print("Image path: ${photo.path}");
+      setState(() {
+        imageFile = File(photo.path);
+        imagePath = photo.path; // Set imagePath here
+      });
 
-      // Extract the color from the image
-      Color color = await extractDominantColor(image!.path);
-
-      var prediction = await ModelService.runInference(File(image.path));
-      String? label;
-      String colorHex = color.value.toRadixString(16).padLeft(8, '0');
-
-      // Handle prediction result as required
-      if (prediction != null) {
-        var labelIndex = prediction['label'];
-        var confidence = prediction['confidence'];
-
-        // Thresholding based on confidence
-        if (confidence >= 0.6) {
-          // If confidence is 60% or above
-          label = await File('assets/labels.txt')
-              .readAsLines()
-              .then((lines) => lines[labelIndex]);
-        } else {
-          // If confidence is below 60%, set default label to "T-shirt"
-          label = "Tshirt";
-        }
-
-        // Show the prediction
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ImagePreviewDialog(
-              imagePath: image.path,
-              label: label,
-              colorHex: colorHex, // Pass the extracted color to the next page
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      print(e);
+      // Call the yoloOnImage function after setting the imagePath
+      await yoloOnImage();
     }
   }
 
+  yoloOnImage() async {
+  final homeModel = Provider.of<HomeModel>(context, listen: false);
+  final boxToApparelTypeMapProvider =
+      Provider.of<BoxToApparelTypeMap>(context, listen: false);
 
+    var uri = Uri.parse('http://192.168.29.210:5000/predict');
+    var request = http.MultipartRequest('POST', uri);
+
+    // Add the image file to the request
+    request.files.add(await http.MultipartFile.fromPath('file', imagePath));
+
+    var response = await request.send();
+    if (response.statusCode == 200) {
+      // Handle the response here
+      var responseData = await response.stream.toBytes();
+      var responseString = String.fromCharCodes(responseData);
+      var jsonObject = json.decode(responseString);
+      print(responseString);
+      String label = responseString;
+      print(label); // Corrected line
+      // Use the label as needed
+      updateModel(label);
+      showToast(message: label);
+      
+    } else {
+      // Handle errors
+      print('Failed to make the prediction request');
+    }
+  }
 }
 
-//Pop-up
 class ImagePreviewDialog extends StatelessWidget {
   final String? imagePath;
   final String? label;

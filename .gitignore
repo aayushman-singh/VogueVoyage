@@ -10,3 +10,8 @@ clothing/gradlew
 clothing/windows/flutter/CMakeLists.txt
 clothing/windows/flutter/CMakeLists.txt
 clothing.zip
+clothing/assets/vv2.tflite
+clothing/assets/vv5_float32.tflite
+clothing/assets/vv5.pt
+clothing/assets/vv5.pt
+*.pt

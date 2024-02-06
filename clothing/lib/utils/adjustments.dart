@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 class HomeModel with ChangeNotifier {
   String occasion = 'other';
-  String apparelInput = 'Tshirt';
+  String apparelInput = 'Tshirts';
   String apparelColor = 'White';
 
   void setOccasion(String newOccasion) {

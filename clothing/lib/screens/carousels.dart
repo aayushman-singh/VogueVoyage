@@ -347,7 +347,13 @@ List<String> getComplementaryColors(String clothingColor, String skinTone) {
   return [];
 }
 
-class Carousels extends StatelessWidget {
+
+class Carousels extends StatefulWidget {
+  @override
+  _CarouselsState createState() => _CarouselsState();
+}
+
+class _CarouselsState extends State<Carousels> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -356,91 +362,128 @@ class Carousels extends StatelessWidget {
       ),
       body: ListView.builder(
         itemCount: 5, // Assuming you have 5 carousels
-        itemBuilder: (context, index) => CarouselWidget(index + 1),
+        itemBuilder: (context, index) => CarouselWidget(boxNumber: index + 1),
       ),
     );
   }
 }
 
-class CarouselWidget extends StatelessWidget {
+// Individual Carousel Widget
+class CarouselWidget extends StatefulWidget {
   final int boxNumber;
 
-  CarouselWidget(this.boxNumber);
+  CarouselWidget({required this.boxNumber});
+
+  @override
+  _CarouselWidgetState createState() => _CarouselWidgetState();
+}
+
+class _CarouselWidgetState extends State<CarouselWidget> {
+  String? selectedType;
 
   @override
   Widget build(BuildContext context) {
+    // Providers and model accesses
     final userSelection = Provider.of<SelectionModel>(context);
     final homeModel = Provider.of<HomeModel>(context);
-    final boxToApparelTypeMapProvider =
-        Provider.of<BoxToApparelTypeMap>(context);
-    List<String> apparelTypes =
-        boxToApparelTypeMapProvider.boxToApparelTypeMap[boxNumber] ?? [];
-    // Get the user's selected occasion, apparel input, and color
+    final boxToApparelTypeMapProvider = Provider.of<BoxToApparelTypeMap>(context);
+    final List<String> apparelTypes = boxToApparelTypeMapProvider.boxToApparelTypeMap[widget.boxNumber] ?? [];
+
+    // Get the user's selected filters
     final selectedOccasion = homeModel.occasion;
-    final selectedApparelInput = homeModel.apparelInput;
     final selectedColor = homeModel.apparelColor;
     final selectedGender = userSelection.gender;
     final selectedSkinTone = userSelection.skinColorOption;
-    // Determine complementary colors based on the user's selected color
-    final recommendedColors =
-        getComplementaryColors(selectedColor, selectedSkinTone);
 
-    // Filter products based on the apparel type map, occasion, and complementary colors
-    List<Product> filteredProducts = products
-        .where((product) =>
-            boxToApparelTypeMapProvider.boxToApparelTypeMap[boxNumber]!
-                .contains(product.appareltype) &&
-            (selectedOccasion.isEmpty ||
-                product.occasion.toLowerCase() == 'other' ||
-                product.occasion == selectedOccasion) &&
-            recommendedColors.contains(product.color) &&
-            (selectedGender.isEmpty ||
-                product.gender.toLowerCase() == 'other' ||
-                product.gender.toLowerCase() == selectedGender.toLowerCase()))
-        .toList();
+    // Recommended colors based on user selection
+    final recommendedColors = getComplementaryColors(selectedColor, selectedSkinTone);
+
+    // Filter products based on user selections and the box number
+    List<Product> filteredProducts = getFilteredProducts(
+      products, widget.boxNumber, selectedOccasion, recommendedColors, selectedGender, boxToApparelTypeMapProvider);
+
+    List<Product> displayProducts = getDisplayProducts(filteredProducts);
 
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Carousel $boxNumber'), // Carousel title
-            PopupMenuButton<String>(
-              onSelected: (String value) {
-                // You can use this value to do something when an option is selected
-                // For example, you might want to filter the displayed products based on the selection
-              },
-              itemBuilder: (BuildContext context) {
-                return apparelTypes.map((String choice) {
-                  return PopupMenuItem<String>(
-                    value: choice,
-                    child: Text(choice),
-                  );
-                }).toList();
-              },
-              icon: Icon(Icons.arrow_drop_down), // Icon for the popup menu
-            ),
+            Text('Carousel ${widget.boxNumber}'),
+            buildPopupMenuButton(apparelTypes),
           ],
         ),
-        Container(
-          height: 200, // Adjust based on your UI design
-          child: ScrollSnapList(
-            onItemFocus: (index) {},
-            dynamicItemSize: true,
-            itemSize: 150,
-            scrollDirection: Axis.horizontal,
-            itemCount: filteredProducts.length,
-            itemBuilder: (context, index) {
-              Product product = filteredProducts[index];
-              return Card(
-                child:
-                    Image.asset(product.imagePath), // Display the product image
-                // Add more product details here as needed
-              );
-            },
-          ),
-        ),
+        buildCarousel(displayProducts),
       ],
     );
   }
+
+  PopupMenuButton<String> buildPopupMenuButton(List<String> apparelTypes) {
+    return PopupMenuButton<String>(
+      onSelected: (String newSelectedType) {
+        setState(() {
+          selectedType = newSelectedType;
+        });
+      },
+      itemBuilder: (BuildContext context) {
+        return apparelTypes.map((String type) {
+          return PopupMenuItem<String>(
+            value: type,
+            child: Text(type),
+          );
+        }).toList();
+      },
+      icon: Icon(Icons.arrow_drop_down),
+    );
+  }
+
+  Widget buildCarousel(List<Product> displayProducts) {
+    return Container(
+      height: 200, // Adjust based on your UI design
+      // Use ScrollSnapList or similar widget here
+      child: ScrollSnapList(
+        listController: ScrollController(), // You might want to control the scroll position programmatically
+        onItemFocus: (int index) {
+          // Optional: Handle the event when an item is focused/snapped
+        },
+        itemSize: 150, // Set the size of each item in the list
+        itemBuilder: (BuildContext context, int index) {
+          Product product = displayProducts[index];
+          return Card(
+            child: Image.asset(product.imagePath), // Display the product image
+            // Add more product details here as needed
+          );
+        },
+        itemCount: displayProducts.length,
+        scrollDirection: Axis.horizontal,
+      ),
+    );
+  }
+
+  List<Product> getDisplayProducts(List<Product> filteredProducts) {
+    if (selectedType == null) {
+      return [];
+    } else {
+      return filteredProducts
+          .where((product) => product.appareltype == selectedType)
+          .toList();
+    }
+  }
+}
+
+// Function to filter products based on various selections
+List<Product> getFilteredProducts(
+    List<Product> products,
+    int boxNumber,
+    String selectedOccasion,
+    List<String> recommendedColors,
+    String selectedGender,
+    BoxToApparelTypeMap boxToApparelTypeMapProvider) {
+  return products
+      .where((product) =>
+          boxToApparelTypeMapProvider.boxToApparelTypeMap[boxNumber]!.contains(product.appareltype) &&
+          (selectedOccasion.isEmpty || product.occasion.toLowerCase() == 'other' || product.occasion == selectedOccasion) &&
+          recommendedColors.contains(product.color) &&
+          (selectedGender.isEmpty || product.gender.toLowerCase() == 'other' || product.gender.toLowerCase() == selectedGender.toLowerCase()))
+      .toList();
 }

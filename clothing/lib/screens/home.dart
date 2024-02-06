@@ -2,6 +2,7 @@ import 'package:clothing/screens/user_info.dart';
 import 'package:clothing/utils/image_data.dart';
 import 'package:clothing/utils/selection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_vision/flutter_vision.dart';
 import 'camera_screen.dart';
 import 'package:clothing/utils/adjustments.dart';
 import 'package:provider/provider.dart';
@@ -87,7 +88,7 @@ class _HomeState extends State<Home> {
                   });
                 },
                 children: [
-                  CameraScreen(),
+                  YoloImageV8(vision: FlutterVision()),
                   // CameraScreen as the first page
 
                   Carousels(

@@ -6,7 +6,7 @@ class BoxToApparelTypeMap with ChangeNotifier {
     1: ['Rings', 'Hats', 'Necklaces'],
     2: ['Jackets', 'Sweatshirts', 'Hoodies', 'Blazers'],
     3: ['Tshirts', 'Tops', 'Shirts', 'Dresses'],
-    4: ['Shorts', 'Skirts', 'Jeans', 'Pants', 'Casual Pants'],
+    4: ['Shorts', 'Skirts', 'Jeans', 'Pants', 'Pants'],
     5: ['Sneakers', 'Boots', 'Heels', 'Formal Shoes']
   };
   Map<int, List<String>> get boxToApparelTypeMap => _boxToApparelTypeMap;
@@ -25,7 +25,7 @@ class BoxToApparelTypeMap with ChangeNotifier {
         _boxToApparelTypeMap[3] = ['Tshirts', 'Tops']; // Top wear options
         _boxToApparelTypeMap[4] = [
           'Jeans',
-          'Casual Pants'
+          'Pants'
         ]; // Bottom wear options
         _boxToApparelTypeMap[5] = ['Sneakers']; // Footwear
         break;
@@ -58,7 +58,7 @@ class BoxToApparelTypeMap with ChangeNotifier {
         _boxToApparelTypeMap[3] = ['Tshirts', 'Tops']; // Top wear options
         _boxToApparelTypeMap[4] = [
           'Jeans',
-          'Casual Pants'
+          'Pants'
         ]; // Bottom wear options
         _boxToApparelTypeMap[5] = ['Sneakers', 'Boots']; // Footwear
         break;
@@ -76,7 +76,7 @@ class BoxToApparelTypeMap with ChangeNotifier {
         _boxToApparelTypeMap[3] = ['Dresses']; // Dresses
         _boxToApparelTypeMap[4] = [
           'Skirts',
-          'Casual Pants'
+          'Pants'
         ]; // Bottom wear for versatility
         _boxToApparelTypeMap[5] = ['Heels', 'Boots']; // Footwear
         break;
@@ -85,7 +85,7 @@ class BoxToApparelTypeMap with ChangeNotifier {
         _boxToApparelTypeMap[1] = ['Hats', 'Rings']; // Accessories
         _boxToApparelTypeMap[2] = ['Jackets', 'Blazers']; // Outerwear
         _boxToApparelTypeMap[3] = ['Tops', 'Tshirts']; // Top wear
-        _boxToApparelTypeMap[4] = ['Pants', 'Casual Pants']; // Bottom wear
+        _boxToApparelTypeMap[4] = ['Pants','Jeans']; // Bottom wear
         _boxToApparelTypeMap[5] = ['Formal Shoes', 'Sneakers']; // Footwear
         break;
 
@@ -161,7 +161,7 @@ class BoxToApparelTypeMap with ChangeNotifier {
           'Skirts',
           'Jeans',
           'Pants',
-          'Casual Pants'
+          'Pants'
         ];
         _boxToApparelTypeMap[5] = [
           'Sneakers',
