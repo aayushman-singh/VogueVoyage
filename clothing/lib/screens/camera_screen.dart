@@ -158,24 +158,23 @@ Future _showApparelMenu(BuildContext context) async {
 Future _showColorMenu(BuildContext context) async {
   // You can populate this list based on your needs
   final List<String> options = [
-    'Red',
-    'Green',
-    'Blue',
-    'Yellow',
-    'Orange',
-    'Purple',
-    'Black',
-    'White',
-    'Gray',
-    'Pink',
-    'Cyan',
-    'Magenta',
-    'Lime',
-    'Maroon',
-    'Navy',
-    'Olive',
-    'Turquoise',
-    'Coral',
+    'red',
+    'blue',
+    'yellow',
+    'orange',
+    'purple',
+    'black',
+    'white',
+    'gray',
+    'pink',
+    'cyan',
+    'magenta',
+    'lime',
+    'maroon',
+    'navy',
+    'olive',
+    'turquoise',
+    'coral',
   ];
 
   final String? result = await showDialog<String>(
@@ -332,9 +331,9 @@ class _YoloImageV8State extends State<YoloImageV8> {
   }
 
   yoloOnImage() async {
-  final homeModel = Provider.of<HomeModel>(context, listen: false);
-  final boxToApparelTypeMapProvider =
-      Provider.of<BoxToApparelTypeMap>(context, listen: false);
+    final homeModel = Provider.of<HomeModel>(context, listen: false);
+    final boxToApparelTypeMapProvider =
+        Provider.of<BoxToApparelTypeMap>(context, listen: false);
 
     var uri = Uri.parse('http://192.168.29.210:5000/predict');
     var request = http.MultipartRequest('POST', uri);
@@ -350,11 +349,12 @@ class _YoloImageV8State extends State<YoloImageV8> {
       var jsonObject = json.decode(responseString);
       print(responseString);
       String label = responseString;
+      homeModel.setApparelInput(label);
+      boxToApparelTypeMapProvider.updateApparelTypeMap(label);
       print(label); // Corrected line
       // Use the label as needed
       updateModel(label);
       showToast(message: label);
-      
     } else {
       // Handle errors
       print('Failed to make the prediction request');

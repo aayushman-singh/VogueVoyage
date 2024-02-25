@@ -15,3 +15,5 @@ clothing/assets/vv5_float32.tflite
 clothing/assets/vv5.pt
 clothing/assets/vv5.pt
 *.pt
+*.cc
+*.cmake

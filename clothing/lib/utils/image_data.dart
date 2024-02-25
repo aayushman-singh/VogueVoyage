@@ -6,7 +6,7 @@ class BoxToApparelTypeMap with ChangeNotifier {
     1: ['Rings', 'Hats', 'Necklaces'],
     2: ['Jackets', 'Sweatshirts', 'Hoodies', 'Blazers'],
     3: ['Tshirts', 'Tops', 'Shirts', 'Dresses'],
-    4: ['Shorts', 'Skirts', 'Jeans', 'Pants', 'Pants'],
+    4: ['Shorts', 'Skirts', 'Jeans', 'Pants'],
     5: ['Sneakers', 'Boots', 'Heels', 'Formal Shoes']
   };
   Map<int, List<String>> get boxToApparelTypeMap => _boxToApparelTypeMap;
@@ -160,7 +160,6 @@ class BoxToApparelTypeMap with ChangeNotifier {
           'Shorts',
           'Skirts',
           'Jeans',
-          'Pants',
           'Pants'
         ];
         _boxToApparelTypeMap[5] = [

@@ -56,11 +56,8 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    final selectionModel = Provider.of<SelectionModel>(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Vogue Voyage'),
-      ),
+
       body: GestureDetector(
         onHorizontalDragEnd: (details) {
           if (details.primaryVelocity! > 0) {

@@ -1,15 +1,15 @@
 import 'package:clothing/utils/image_data.dart';
 import 'package:clothing/utils/product.dart';
+import 'package:clothing/utils/selection.dart';
 import 'package:flutter/material.dart';
 import 'package:scroll_snap_list/scroll_snap_list.dart';
 import 'package:provider/provider.dart';
 import 'package:clothing/utils/adjustments.dart';
-import 'package:clothing/utils/selection.dart';
 
-typedef FilterCallback = void Function(String selectedApparelType);
+//typedef FilterCallback = void Function(String selectedApparelType);
 //desired_classes = ['Shirt', 'Blazers', 'Hoodies', 'Skirts', 'Jeans', 'Casual Pants', 'Tshirts', 'Tops', 'Sweatshirts', 'Shorts', 'Sarees', 'Dresses', 'Shrugs', 'Jackets', 'Sweaters', 'Leggings', 'Kurtas']
 
-List<Product> products = [
+List<Product> allProducts = [
   Product('assets/images/dataset/shoe1.png', 'other', 'casual', 'Sneakers',
       'white'),
   Product('assets/images/dataset/shoe2.png', 'other', 'casual', 'Sneakers',
@@ -80,7 +80,7 @@ List<Product> products = [
   Product(
       'assets/images/dataset/skirt3.png', 'female', 'casual', 'Skirts', 'blue'),
   Product('assets/images/dataset/skirt4.png', 'female', 'casual', 'Skirts',
-      'purple'),
+      'mauve'),
   Product('assets/images/dataset/skirt5.png', 'female', 'casual', 'Skirts',
       'yellow'),
   Product('assets/images/dataset/hat1.png', 'other', 'casual', 'Hats', 'black'),
@@ -144,7 +144,7 @@ List<Product> products = [
   Product('assets/images/dataset/tshirt4.png', 'other', 'casual', 'Tshirts',
       'blue'),
   Product('assets/images/dataset/tshirt5.png', 'other', 'casual', 'Tshirts',
-      'green'),
+      'olive'),
   Product('assets/images/dataset/tshirt6.png', 'other', 'casual', 'Tshirts',
       'white'),
   Product('assets/images/dataset/tshirt7.png', 'other', 'casual', 'Tshirts',
@@ -166,7 +166,7 @@ List<Product> products = [
   Product(
       'assets/images/dataset/hoodie1.png', 'other', 'casual', 'Hoodie', 'blue'),
   Product('assets/images/dataset/hoodie2.png', 'other', 'casual', 'Hoodie',
-      'green'),
+      'olive'),
   Product('assets/images/dataset/hoodie3.png', 'other', 'casual', 'Hoodie',
       'light blue'),
   Product(
@@ -220,7 +220,7 @@ List<Product> products = [
   Product('assets/images/dataset/cargo3.png', 'other', 'casual', 'Casual Pants',
       'grey'),
   Product('assets/images/dataset/cargo4.png', 'other', 'casual', 'Casual Pants',
-      'green'),
+      'olive'),
   Product('assets/images/dataset/cargo5.png', 'other', 'casual', 'Casual Pants',
       'cream')
 ];
@@ -239,23 +239,23 @@ Map<String, Map<String, List<String>>> complementaryColors = {
     'warm': ['brown', 'beige', 'white', 'black']
   },
   'blue': {
-    'cool': ['soft gray', 'light green', 'white', 'black'],
+    'cool': ['soft gray', 'light olive', 'white', 'black'],
     'warm': ['beige', 'olive', 'white', 'black']
   },
-  'green': {
+  'olive': {
     'cool': ['soft blue', 'light gray', 'black', 'white'],
     'warm': ['olive', 'beige', 'white', 'black']
   },
   'yellow': {
     'cool': ['beige', 'soft gray', 'black', 'white'],
-    'warm': ['light brown', 'soft green', 'black', 'white']
+    'warm': ['light brown', 'soft olive', 'black', 'white']
   },
   'orange': {
     'cool': ['mauve', 'soft blue', 'black', 'white'],
     'warm': ['brown', 'soft pink', 'black', 'white']
   },
-  'purple': {
-    'cool': ['gray', 'soft green', 'black', 'white'],
+  'mauve': {
+    'cool': ['gray', 'soft olive', 'black', 'white'],
     'warm': ['mauve', 'beige', 'black', 'white']
   },
   'pink': {
@@ -264,7 +264,7 @@ Map<String, Map<String, List<String>>> complementaryColors = {
   },
   'gray': {
     'cool': ['soft blue', 'olive', 'black', 'white'],
-    'warm': ['navy', 'soft green', 'black', 'white']
+    'warm': ['navy', 'soft olive', 'black', 'white']
   },
   'brown': {
     'cool': ['gray', 'soft pink', 'black', 'white'],
@@ -310,10 +310,6 @@ Map<String, Map<String, List<String>>> complementaryColors = {
     'cool': ['gray', 'soft blue', 'black', 'white'],
     'warm': ['beige', 'soft blue', 'black', 'white']
   },
-  'olive': {
-    'cool': ['gray', 'soft pink', 'black', 'white'],
-    'warm': ['soft pink', 'soft blue', 'black', 'white']
-  },
   'magenta': {
     'cool': ['gray', 'navy', 'black', 'white'],
     'warm': ['navy', 'beige', 'black', 'white']
@@ -327,26 +323,6 @@ Map<String, Map<String, List<String>>> complementaryColors = {
     'warm': ['beige', 'soft pink', 'black', 'white']
   }
 };
-
-List<String> getComplementaryColors(String clothingColor, String skinTone) {
-  // Check if the clothing color is in the map
-  if (complementaryColors.containsKey(clothingColor.toLowerCase())) {
-    // Retrieve the sub-map for the clothing color
-    var colorMap = complementaryColors[clothingColor.toLowerCase()]!;
-    // Check if the skin tone has specific recommendations
-    if (colorMap.containsKey(skinTone.toLowerCase())) {
-      return colorMap[skinTone.toLowerCase()]!;
-    } else if (skinTone.toLowerCase() == 'neutral') {
-      // For 'neutral' skin tone, consider combining all suggestions, avoiding duplicates
-      var allColors = Set<String>();
-      colorMap.values.forEach((list) => allColors.addAll(list));
-      return allColors.toList();
-    }
-  }
-  // Return an empty list if there are no matches or if inputs are invalid
-  return [];
-}
-
 
 class Carousels extends StatefulWidget {
   @override
@@ -380,29 +356,76 @@ class CarouselWidget extends StatefulWidget {
 
 class _CarouselWidgetState extends State<CarouselWidget> {
   String? selectedType;
+  List<Product> displayedProducts = [];
+
+  @override
+  void initState() {
+    super.initState();
+    filterProducts(); // Initial filtering based on boxNumber
+  }
+
+  void filterProducts({String? apparelType}) {
+    final selectionModel = Provider.of<SelectionModel>(context, listen: false);
+    final boxToApparelTypeMapProvider =
+        Provider.of<BoxToApparelTypeMap>(context, listen: false);
+    final List<String> allowedTypes =
+        boxToApparelTypeMapProvider.boxToApparelTypeMap[widget.boxNumber] ?? [];
+    final homeModel = Provider.of<HomeModel>(context, listen: false);
+    print(allowedTypes);
+    // Filter products based on the allowed types for the box number
+    List<Product> filteredProducts = allProducts
+        .where((product) => allowedTypes.contains(product.appareltype))
+        .toList();
+
+    // Further filter by the selected apparel type, if any
+    if (apparelType != null) {
+      filteredProducts = filteredProducts
+          .where((product) => product.appareltype == apparelType)
+          .toList();
+    }
+
+    // Apply color filter based on skin color option and complementary colors
+     if (homeModel.apparelColor.isNotEmpty && selectionModel.skinColorOption.isNotEmpty) {
+    filteredProducts = filterByComplementaryColors(filteredProducts, homeModel.apparelColor, selectionModel.skinColorOption);
+  }
+
+    setState(() {
+      displayedProducts = filteredProducts;
+    });
+  }
+
+  List<Product> filterByComplementaryColors(
+      List<Product> products, String apparelColor, String skinColorOption) {
+    Set<String> allowedColors = {};
+
+    // Check if the apparelColor exists in the complementaryColors map
+    if (complementaryColors.containsKey(apparelColor)) {
+      Map<String, List<String>>? colorOptions =
+          complementaryColors[apparelColor];
+
+      if (skinColorOption == 'neutral') {
+        // For 'neutral', combine both 'warm' and 'cool' colors without duplicates
+        allowedColors.addAll(colorOptions?['cool'] ?? []);
+        allowedColors.addAll(colorOptions?['warm'] ?? []);
+      } else {
+        // For 'warm' or 'cool', add only the relevant colors
+        allowedColors.addAll(colorOptions?[skinColorOption] ?? []);
+      }
+    }
+
+    // Filter products by the allowed colors
+    print(allowedColors);
+    return products
+        .where((product) => allowedColors.contains(product.color))
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Providers and model accesses
-    final userSelection = Provider.of<SelectionModel>(context);
-    final homeModel = Provider.of<HomeModel>(context);
-    final boxToApparelTypeMapProvider = Provider.of<BoxToApparelTypeMap>(context);
-    final List<String> apparelTypes = boxToApparelTypeMapProvider.boxToApparelTypeMap[widget.boxNumber] ?? [];
-
-    // Get the user's selected filters
-    final selectedOccasion = homeModel.occasion;
-    final selectedColor = homeModel.apparelColor;
-    final selectedGender = userSelection.gender;
-    final selectedSkinTone = userSelection.skinColorOption;
-
-    // Recommended colors based on user selection
-    final recommendedColors = getComplementaryColors(selectedColor, selectedSkinTone);
-
-    // Filter products based on user selections and the box number
-    List<Product> filteredProducts = getFilteredProducts(
-      products, widget.boxNumber, selectedOccasion, recommendedColors, selectedGender, boxToApparelTypeMapProvider);
-
-    List<Product> displayProducts = getDisplayProducts(filteredProducts);
+    final boxToApparelTypeMapProvider =
+        Provider.of<BoxToApparelTypeMap>(context);
+    final List<String> apparelTypes =
+        boxToApparelTypeMapProvider.boxToApparelTypeMap[widget.boxNumber] ?? [];
 
     return Column(
       children: [
@@ -413,7 +436,7 @@ class _CarouselWidgetState extends State<CarouselWidget> {
             buildPopupMenuButton(apparelTypes),
           ],
         ),
-        buildCarousel(displayProducts),
+        buildCarousel(),
       ],
     );
   }
@@ -421,9 +444,9 @@ class _CarouselWidgetState extends State<CarouselWidget> {
   PopupMenuButton<String> buildPopupMenuButton(List<String> apparelTypes) {
     return PopupMenuButton<String>(
       onSelected: (String newSelectedType) {
-        setState(() {
-          selectedType = newSelectedType;
-        });
+        filterProducts(
+            apparelType:
+                newSelectedType); // Filter products by the selected type
       },
       itemBuilder: (BuildContext context) {
         return apparelTypes.map((String type) {
@@ -437,53 +460,25 @@ class _CarouselWidgetState extends State<CarouselWidget> {
     );
   }
 
-  Widget buildCarousel(List<Product> displayProducts) {
+  Widget buildCarousel() {
     return Container(
-      height: 200, // Adjust based on your UI design
-      // Use ScrollSnapList or similar widget here
+      height: 150,
       child: ScrollSnapList(
-        listController: ScrollController(), // You might want to control the scroll position programmatically
-        onItemFocus: (int index) {
-          // Optional: Handle the event when an item is focused/snapped
-        },
-        itemSize: 150, // Set the size of each item in the list
+        listController: ScrollController(),
+        onItemFocus: (int index) {},
+        dynamicItemSize: true,
+        itemSize: 150, // Adjust size as needed
         itemBuilder: (BuildContext context, int index) {
-          Product product = displayProducts[index];
+          Product product = displayedProducts[index];
           return Card(
-            child: Image.asset(product.imagePath), // Display the product image
+            child: Image.asset(product
+                .imagePath), // Assuming imagePath is a property of Product
             // Add more product details here as needed
           );
         },
-        itemCount: displayProducts.length,
+        itemCount: displayedProducts.length,
         scrollDirection: Axis.horizontal,
       ),
     );
   }
-
-  List<Product> getDisplayProducts(List<Product> filteredProducts) {
-    if (selectedType == null) {
-      return [];
-    } else {
-      return filteredProducts
-          .where((product) => product.appareltype == selectedType)
-          .toList();
-    }
-  }
-}
-
-// Function to filter products based on various selections
-List<Product> getFilteredProducts(
-    List<Product> products,
-    int boxNumber,
-    String selectedOccasion,
-    List<String> recommendedColors,
-    String selectedGender,
-    BoxToApparelTypeMap boxToApparelTypeMapProvider) {
-  return products
-      .where((product) =>
-          boxToApparelTypeMapProvider.boxToApparelTypeMap[boxNumber]!.contains(product.appareltype) &&
-          (selectedOccasion.isEmpty || product.occasion.toLowerCase() == 'other' || product.occasion == selectedOccasion) &&
-          recommendedColors.contains(product.color) &&
-          (selectedGender.isEmpty || product.gender.toLowerCase() == 'other' || product.gender.toLowerCase() == selectedGender.toLowerCase()))
-      .toList();
 }
