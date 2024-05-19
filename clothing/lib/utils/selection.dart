@@ -6,8 +6,12 @@ class SelectionModel with ChangeNotifier {
   String gender;
   String bodyTypeOption;
   String skinColorOption;
+  String email;
+  String password;
 
   SelectionModel({
+    this.email = '',
+    this.password = '',
     this.name = '',
     this.age = 0,
     this.gender = '',
@@ -16,18 +20,21 @@ class SelectionModel with ChangeNotifier {
   });
 
   void updateUserInfo({
-  String? name,
-  int? age,
-  String? gender,
-  String? bodyTypeOption,
-  String? skinColorOption,
-}) {
-  if (name != null) this.name = name;
-  if (age != null) this.age = age;
-  if (gender != null) this.gender = gender;
-  if (bodyTypeOption != null) this.bodyTypeOption = bodyTypeOption;
-  if (skinColorOption != null) this.skinColorOption = skinColorOption;
-  notifyListeners();
-}
-
+    String? email,
+    String? password,
+    String? name,
+    int? age,
+    String? gender,
+    String? bodyTypeOption,
+    String? skinColorOption,
+  }) {
+    if (email != null) this.email = email;
+    if (password != null) this.password = password;
+    if (name != null) this.name = name;
+    if (age != null) this.age = age;
+    if (gender != null) this.gender = gender;
+    if (bodyTypeOption != null) this.bodyTypeOption = bodyTypeOption;
+    if (skinColorOption != null) this.skinColorOption = skinColorOption;
+    notifyListeners();
+  }
 }

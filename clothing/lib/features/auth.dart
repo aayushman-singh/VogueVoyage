@@ -1,5 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:clothing/features/text.dart';
+import 'package:voguevoyage/features/text.dart';
 
 
 class Auth {

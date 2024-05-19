@@ -1,12 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:clothing/utils/selection.dart';
-import 'package:clothing/features/submit_form.dart';
+import 'package:voguevoyage/features/auth_methods.dart';
+import 'package:voguevoyage/models/user.dart' as model;
+import 'package:voguevoyage/screens/home.dart';
+import 'package:voguevoyage/utils/selection.dart';
+import 'package:voguevoyage/utils/utils.dart';
+import 'package:voguevoyage/utils/user_provider.dart';
 import 'package:provider/provider.dart';
 
-class MyUserPage extends StatelessWidget {
-  final String userId;
+class UserPage extends StatefulWidget {
+  UserPage({super.key});
+  @override
+  State<UserPage> createState() => _UserPageState();
+}
 
-  MyUserPage({required this.userId});
+class _UserPageState extends State<UserPage> {
+  final TextEditingController _nameController = TextEditingController();
+
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(Duration.zero, () {
+      // Check if arguments are passed
+      final args = ModalRoute.of(context)?.settings.arguments as Map?;
+      if (args != null) {
+        final String name = args['name'];
+
+        _nameController.text = name;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +47,8 @@ class MyUserPage extends StatelessWidget {
 
     void _updateUserSelections(SelectionModel selectionModel) {
       selectionModel.updateUserInfo(
+        email: selectionModel.email,
+        password: selectionModel.password,
         name: selectionModel.name,
         age: selectionModel.age,
         gender: selectionModel.gender,
@@ -49,10 +75,8 @@ class MyUserPage extends StatelessWidget {
           SkinColorOptions(
             onSubmitPressed: () {
               _updateUserSelections(selectionModel);
-              submitForm(context, userId, selectionModel);
             },
             selectionModel: selectionModel,
-            userId: userId,
           ),
         ],
         onPageChanged: (int page) {
@@ -201,15 +225,16 @@ class _BodyTypeOptionsState extends State<BodyTypeOptions> {
             duration: Duration(milliseconds: 300),
             decoration: BoxDecoration(
               border: Border.all(
-                  color: isSelected ? Colors.black : Colors.transparent,
+                  color:
+                      isSelected ? Colors.black : Color.fromARGB(255, 0, 0, 0),
                   width: 2),
               borderRadius: BorderRadius.circular(8),
             ),
             child: ColorFiltered(
               colorFilter: isSelected
                   ? ColorFilter.mode(
-                      Colors.black.withOpacity(0.5), BlendMode.darken)
-                  : ColorFilter.mode(Colors.transparent, BlendMode.clear),
+                      Colors.black.withOpacity(0.1), BlendMode.darken)
+                  : ColorFilter.mode(Colors.white, BlendMode.color),
               child: Image.asset(
                 imagePath,
                 width: 100,
@@ -231,12 +256,10 @@ class _BodyTypeOptionsState extends State<BodyTypeOptions> {
 class SkinColorOptions extends StatefulWidget {
   final VoidCallback? onSubmitPressed;
   final SelectionModel? selectionModel;
-  final String userId;
 
   SkinColorOptions({
     this.onSubmitPressed,
     this.selectionModel,
-    required this.userId,
   });
 
   @override
@@ -245,12 +268,48 @@ class SkinColorOptions extends StatefulWidget {
 
 class _SkinColorOptionsState extends State<SkinColorOptions> {
   String? _selectedOption;
-
+  bool _isLoading = false;
   void _updateUserSelection(String selectedOption) {
     setState(() {
       _selectedOption = selectedOption;
       widget.selectionModel!.skinColorOption = selectedOption;
     });
+  }
+
+  void signUpUser(SelectionModel selectionModel) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    String res = await AuthMethods().signUpUser(
+      email: selectionModel.email,
+      password: selectionModel.password,
+      name: selectionModel.name,
+      age: selectionModel.age,
+      gender: selectionModel.gender,
+      bodyTypeOption: selectionModel.bodyTypeOption,
+      skinColorOption: selectionModel.skinColorOption,
+    );
+
+    if (res == "success") {
+      setState(() {
+        _isLoading = false;
+      });
+      if (context.mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => Home(initialPage: 1),
+          ),
+        );
+      }
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+      if (context.mounted) {
+        showSnackBar(context, res);
+      }
+    }
   }
 
   @override
@@ -277,7 +336,8 @@ class _SkinColorOptionsState extends State<SkinColorOptions> {
                 if (_selectedOption != null) {
                   _updateUserSelection(_selectedOption!);
                   print("userinputmain");
-                  print(widget.userId);
+                  print(widget.selectionModel?.email);
+                  print(widget.selectionModel?.password);
                   print(widget.selectionModel!.name); // Fixed here
                   print(widget.selectionModel!.age); // Fixed here
                   print(widget.selectionModel!.gender); // Fixed here
@@ -285,13 +345,8 @@ class _SkinColorOptionsState extends State<SkinColorOptions> {
                   print(widget.selectionModel!.bodyTypeOption);
 
                   if (widget.selectionModel!.bodyTypeOption != null &&
-                      widget.selectionModel!.skinColorOption != null &&
-                      widget.userId != null) {
-                    submitForm(
-                      context,
-                      widget.userId,
-                      widget.selectionModel!, // Fixed here
-                    );
+                      widget.selectionModel!.skinColorOption != null) {
+                    signUpUser(widget.selectionModel!);
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         content: Text('Please complete all selections')));
@@ -334,8 +389,8 @@ class _SkinColorOptionsState extends State<SkinColorOptions> {
             child: ColorFiltered(
               colorFilter: isSelected
                   ? ColorFilter.mode(
-                      Colors.black.withOpacity(0.5), BlendMode.darken)
-                  : ColorFilter.mode(Colors.transparent, BlendMode.clear),
+                      Colors.black.withOpacity(0.1), BlendMode.darken)
+                  : ColorFilter.mode(Colors.white, BlendMode.color),
               child: Image.asset(
                 imagePath,
                 width: 100,
@@ -360,7 +415,6 @@ class _SkinColorOptionsState extends State<SkinColorOptions> {
       Navigator.pushReplacementNamed(
         context,
         '/home',
-        arguments: {'userId': widget.userId}, // Passing userId as an argument
       );
     } else {
       print('Invalid age entered');

@@ -1,12 +1,12 @@
-import 'package:clothing/screens/user_info.dart';
-import 'package:clothing/utils/image_data.dart';
-import 'package:clothing/utils/selection.dart';
+import 'package:voguevoyage/screens/user_info.dart';
+import 'package:voguevoyage/utils/image_data.dart';
+import 'package:voguevoyage/utils/selection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vision/flutter_vision.dart';
 import 'camera_screen.dart';
-import 'package:clothing/utils/adjustments.dart';
+import 'package:voguevoyage/utils/adjustments.dart';
 import 'package:provider/provider.dart';
-import 'package:clothing/screens/carousels.dart';
+import 'package:voguevoyage/screens/carousels.dart';
 
 class Home extends StatefulWidget {
   String? userId;

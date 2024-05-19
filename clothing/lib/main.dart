@@ -1,15 +1,16 @@
-import 'package:clothing/utils/adjustments.dart';
+import 'package:voguevoyage/utils/adjustments.dart';
 import 'package:flutter/material.dart';
-import 'screens/user_input.dart';
+import 'package:voguevoyage/utils/user_provider.dart';
+import 'screens/sign_up.dart';
 import 'screens/login.dart';
 import 'screens/splash.dart';
 import 'screens/home.dart';
-import 'package:clothing/utils/theme.dart';
+import 'package:voguevoyage/utils/theme.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:clothing/firebase_options.dart';
+import 'package:voguevoyage/firebase_options.dart';
 import 'package:provider/provider.dart';
-import 'package:clothing/utils/selection.dart';
-import 'package:clothing/utils/image_data.dart';
+import 'package:voguevoyage/utils/selection.dart';
+import 'package:voguevoyage/utils/image_data.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,12 +19,13 @@ void main() async {
   ); // Initialize Firebase
   runApp(
     MultiProvider(
-    providers: [
-    ChangeNotifierProvider(create: (_) => SelectionModel()),   
-    ChangeNotifierProvider(create: (_) => HomeModel()),  
-    ChangeNotifierProvider(create: (_) => BoxToApparelTypeMap()),
-    ],
-      child: MyApp(),
+      providers: [
+        ChangeNotifierProvider(create: (_) => SelectionModel()),
+        ChangeNotifierProvider(create: (_) => HomeModel()),
+        ChangeNotifierProvider(create: (_) => BoxToApparelTypeMap()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+      ],
+      child: const MyApp(),
     ),
   );
 }
@@ -33,7 +35,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    
     return MaterialApp(
       title: 'Vogue Voyage',
       theme: ThemeClass.lightTheme,
@@ -41,8 +42,8 @@ class MyApp extends StatelessWidget {
       routes: {
         '/splash': (context) => SplashScreen(),
         '/login': (context) => LoginScreen(),
-        '/home': (context, {arguments}) => Home(userId: arguments?['userId'] ?? '', initialPage: 1 ),
-        '/user_input': (context, {arguments}) => MyUserPage(userId: arguments?['userId']?? ''),
+        '/home': (context, {arguments}) => Home(initialPage: 1),
+        '/user_input': (context, {arguments}) => UserPage(),
       },
     );
   }

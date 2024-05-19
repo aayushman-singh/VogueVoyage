@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:clothing/features/text.dart';
+import 'package:voguevoyage/features/text.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -8,9 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vision/flutter_vision.dart';
 import 'package:camera/camera.dart';
 import 'package:provider/provider.dart';
-import 'package:clothing/screens/carousels.dart';
-import 'package:clothing/utils/adjustments.dart'; // Ensure you have a HomeModel class to manage your app state
-import 'package:clothing/utils/image_data.dart';
+import 'package:voguevoyage/screens/carousels.dart';
+import 'package:voguevoyage/utils/adjustments.dart'; // Ensure you have a HomeModel class to manage your app state
+import 'package:voguevoyage/utils/image_data.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class PermissionExample extends StatefulWidget {
@@ -50,7 +50,7 @@ class _PermissionExampleState extends State<PermissionExample> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Permission Example'),
+        title: Text('Permission'),
       ),
       body: Center(
         child: Column(
@@ -213,7 +213,7 @@ class YoloImageV8 extends StatefulWidget {
 
 class _YoloImageV8State extends State<YoloImageV8> {
   void updateModel(String label) {
-    print('successfully upadted');
+    print('successfully updated');
     final homeModel = Provider.of<HomeModel>(context, listen: false);
     homeModel.setApparelInput(label);
     print(homeModel);
@@ -256,7 +256,12 @@ class _YoloImageV8State extends State<YoloImageV8> {
     return Stack(
       fit: StackFit.expand,
       children: [
-        imageFile != null ? Image.file(imageFile!) : const SizedBox(),
+        imageFile != null
+            ? Image.file(imageFile!)
+            : SizedBox(
+                child: Image.asset("assets/images/logo.jpeg"),
+                height: 500,
+              ),
         Positioned(
           top: 0,
           left: 0,
@@ -300,19 +305,6 @@ class _YoloImageV8State extends State<YoloImageV8> {
       ],
     );
   }
-
-  //Future<void> loadYoloModel() async {
-  // await widget.vision.loadYoloModel(
-  //     labels: 'assets/labels.txt',
-  //     modelPath: 'assets/yolov8n.tflite',
-  //   modelVersion: "yolov8",
-  //    quantization: false,
-  //     numThreads: 2,
-  //   useGpu: true);
-  //setState(() {
-  //   isLoaded = true;
-  // });
-  //}
 
   Future<void> pickImage() async {
     final ImagePicker picker = ImagePicker();

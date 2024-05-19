@@ -1,16 +1,21 @@
-import 'package:clothing/features/text.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:clothing/features/auth.dart';
-import 'package:clothing/utils/crypt.dart';
+import 'package:provider/provider.dart';
+import 'package:voguevoyage/features/auth_methods.dart';
+import 'package:voguevoyage/screens/home.dart';
+import 'package:voguevoyage/utils/selection.dart';
+import 'package:voguevoyage/utils/utils.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
+  LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   late final PageController _pageController;
-  late String userId;
-
-  LoginScreen({super.key}) {
-    _pageController = PageController();
-  }
 
   void _navigateToNextPage() {
     _pageController.nextPage(
@@ -19,12 +24,36 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
+  void loginUser() async {
+    setState(() {});
+    String res = await AuthMethods().loginUser(
+        email: _emailController.text, password: _passwordController.text);
+    if (res == 'success') {
+      if (context.mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => Home(initialPage: 1)),
+            (route) => false);
+
+        setState(() {});
+      }
+    } else {
+      setState(() {});
+      if (context.mounted) {
+        showSnackBar(context, res);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final TextEditingController emailController = TextEditingController();
-    final TextEditingController passwordController = TextEditingController();
-    final Auth _auth = Auth();
-
+    SelectionModel selectionModel = Provider.of<SelectionModel>(context);
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
@@ -43,13 +72,13 @@ class LoginScreen extends StatelessWidget {
                   const SizedBox(height: 20.0),
                   TextField(
                     decoration: InputDecoration(labelText: 'Email'),
-                    controller: emailController,
+                    controller: _emailController,
                   ),
                   const SizedBox(height: 20.0),
                   TextField(
                     obscureText: true,
                     decoration: InputDecoration(labelText: 'Password'),
-                    controller: passwordController,
+                    controller: _passwordController,
                   ),
                   const SizedBox(height: 20.0),
                   Row(
@@ -57,55 +86,22 @@ class LoginScreen extends StatelessWidget {
                     children: [
                       ElevatedButton(
                         onPressed: () async {
-                          String email = emailController.text;
-                          String password = passwordController.text;
-
-                          User? user = await _auth.signInWithEmailAndPassword(
-                              email, password);
-
-                          if (user != null) {
-                            String email = user.email ?? "";
-                            if (email.isNotEmpty) {
-                              showToast(message: 'Signed in: $email');
-                              String userId = generateUserIdFromEmail(email);
-                              print(userId);
-                              // Then navigate to userinputmain
-                              Navigator.pushReplacementNamed(
-                                context,
-                                '/home',
-                                arguments: {'userId': userId},
-                              );
-                            } else {
-                              showToast(message: 'Sign in failed');
-                            }
-                          }
+                          loginUser();
                         },
                         child: const Text('Login'),
                       ),
                       const SizedBox(width: 25.0),
                       TextButton(
                         onPressed: () async {
-                          String email = emailController.text;
-                          String password = passwordController.text;
-
-                          User? user = await _auth.signUpWithEmailAndPassword(
-                              email, password);
-
-                          if (user != null) {
-                            String email = user.email ?? "";
-                            if (email.isNotEmpty) {
-                              showToast(message: 'Signed up: $email');
-                              String userId = generateUserIdFromEmail(email);
-                              print(userId);
-                              Navigator.pushReplacementNamed(
-                                context,
-                                '/user_input',
-                                arguments: {'userId': userId}, // Corrected here
-                              );
-                            } else {
-                              showToast(message: 'Sign up failed');
-                            }
-                          }
+                          selectionModel.updateUserInfo(
+                              email: _emailController.text,
+                              password: _passwordController.text);
+                          print(_emailController.text);
+                          print(_passwordController.text);
+                          Navigator.pushReplacementNamed(
+                            context,
+                            '/user_input',
+                          );
                         },
                         child: const Text('Sign Up'),
                       ),

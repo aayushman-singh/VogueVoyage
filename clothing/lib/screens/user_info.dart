@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:clothing/utils/selection.dart';
-import 'package:clothing/features/submit_form.dart';
+import 'package:voguevoyage/utils/selection.dart';
 
 class UserInfoScreen extends StatelessWidget {
   final String? userId;
@@ -14,7 +13,7 @@ class UserInfoScreen extends StatelessWidget {
       builder: (context, selectionModel, child) {
         final List<String> bodyShapes = ['ectomorph', 'mesomorph', 'endomorph'];
         final List<String> skinTones = ['neutral', 'warm', 'cool'];
-        final List<String> genders = ['male', 'female', 'other'];
+        final List<String> genders = ['Male', 'Female', 'Other'];
 
         return Scaffold(
           appBar: AppBar(
@@ -48,7 +47,7 @@ class UserInfoScreen extends StatelessWidget {
                           value: value, child: Text(value)))
                       .toList(),
                   onChanged: (String? newValue) {
-                    selectionModel.gender = newValue ?? '';
+                    selectionModel.gender = newValue?.toLowerCase() ?? '';
                   },
                   isExpanded: true,
                   hint: const Text('Select Gender'),
@@ -89,15 +88,15 @@ class UserInfoScreen extends StatelessWidget {
                   isExpanded: true,
                   hint: const Text('Select Skin Tone'),
                 ),
-               Spacer(),
-                
+                Spacer(),
+
                 Align(
                   alignment: Alignment.centerRight,
                   child: Padding(
                     padding: const EdgeInsets.only(right: 16.0),
                     child: ElevatedButton(
                       onPressed: () async {
-                        submitForm(context, userId!, selectionModel);
+                        selectionModel.updateUserInfo();
                       },
                       child: const Text('Save'),
                     ),
